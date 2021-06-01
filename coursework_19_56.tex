@@ -1,0 +1,129 @@
+\documentclass{article}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amsthm}
+
+\usepackage{listings}
+
+\DeclareMathOperator{\proj}{proj}
+
+\newtheoremstyle{bfnote}%
+{}{}
+{\itshape}{}
+{\bfseries}{.}
+{\newline}{}
+
+\theoremstyle{bfnote}
+
+\newtheorem{defi}{Definition}
+
+\newtheorem{thm}{Theorem}
+
+\begin{document}
+	\title{Kernel Trick}
+	Consider the classification task with training set $(X, Y)$. 
+	We will use an ordinary linear classifier $$a(x)=\text{sgn}(w^T x + b)$$ Direct application of an SVM method leads to the following optimization problem:
+	
+	\begin{gather}
+	\frac{1}{2} w^T w + C \cdot \sum_{i=1}^N {\xi_i} \rightarrow \min\limits_{w, \xi_i} \\
+	\text{w.r.t.} \quad y_i(w^T x_i + b) \ge 1-\xi_i \quad \text{and} \quad \xi_i \ge 0 
+	\end{gather}
+	
+	On practice almost always data is not linearly separable and therefore such a linear model will perform poorly.
+	
+	There is an idea to treat our current data as projection of a set $\mathbb{X}$ of a higher dimensional vector space V on a subspace $U$ of this space: $X=\proj_U \mathbb{X}$. While the projection of $\mathbb{X}$ on $U$ is not linearly separable, it may happen that $\mathbb{X}$ itself is perfectly divisible in V.
+	
+	The problem here is that in order to define $V$ s.t. the data $\mathbb{X}$ may be easily separated by a linear classifier
+	we need to add hundreds of new non-linear feature axes to the original space. This will dramatically increase computational complexity of our optimization problem.
+	
+	\begin{defi}
+	Function $k: X \times X \rightarrow \mathbb{R}$ is called kernel if it is symmetric and positive-definite.
+	\end{defi}
+	
+	\begin{thm}[Mercer]
+		
+		Suppose that $k: X \times X \rightarrow \mathbb{R}$ is a kernel function.
+
+		Then there is an injective map $\varphi: \mathbb{R}^d \rightarrow V$ s.t. 
+		$$k(x, y) = \langle \varphi(x), \varphi(y) \rangle$$ 
+		
+		where $\langle \cdot , \cdot \rangle$ denotes the dot product in the vector space $V$(possibly infinite-dimensional).
+		
+	\end{thm}	
+
+	
+	It can be shown that our optimization problem $(1)$ could be converted into this one???:
+	
+	\begin{gather}
+	\sum_{i=1}^N {\alpha_i} - \frac{1}{2}\sum_{i,j=1}^N \alpha_j \alpha_k y_j y_k \cdot x_j^T x_k
+	\rightarrow \max\limits_{\alpha} \\
+	\text{w.r.t.} \quad 0 \le \alpha_i \le C \quad \text{and} \quad \sum_{i=1}^N \alpha_i y_i
+	\end{gather}
+	
+	which as you can see depends only on the dot products $x_j^T x_k$ between the objects from sample.
+
+
+
+	It follows from the above theorem that by defining an arbitrary kernel function
+	$k:\mathbb{R}^d \times \mathbb{R}^d \rightarrow \mathbb{R}$ 
+	we implicitly map our data to a higher dimensional vector space with $\varphi: X \rightarrow V$, $\mathbb{X} = \varphi(X)$
+	
+	
+	We can use this fact to deal with the optimization problem (3) in slightly distinct manner.
+	
+	Let's write down (3) formulated for objects of $\mathbb{X}$:
+	
+	$$
+	\sum_{i=1}^N {\alpha_i} - \frac{1}{2}\sum_{i,j=1}^N \alpha_j \alpha_k y_j y_k \cdot \langle \varphi(x_j), \varphi(x_k) \rangle
+	\rightarrow \max\limits_{\alpha} \\
+	$$
+	
+	which is obviously the same as
+	
+	$$
+		\sum_{i=1}^N {\alpha_i} - \frac{1}{2}\sum_{i,j=1}^N \alpha_j \alpha_k y_j y_k 
+	\cdot k(x_j, x_k)
+	\rightarrow \max\limits_{\alpha} \\
+	$$
+	
+	since $\langle \varphi(x), \varphi(y) \rangle = k(x, y)$
+	
+	And here we actually solved our computational complexity problem: the matrix $K=(k(x_i, x_j))_{i, j=1}^N$ (which will be used for computations) is always $N \times N$ size independently of $\dim V$.
+	
+	\textbf{Downsides}
+	
+	While our computational complexity does not depend on $\dim V$ it actually very heavily depends on the number of objects in sample. Thus, it will be hard to learn on the large training sets.
+	
+	Ordinary linear inference methods works well with large datasets. It would be nice if we were able to map our data into \textit{lower dimensional} space so that the inner product in that space approximate the kernel value. Thus, we would use both efficiency of ordinary inference methods and power of implicitly defined by kernel features.
+	
+	It turns out, that we actually can define such a map.
+	
+	\begin{thm}[Bochner]
+		Continuous function $f:\mathbb{R}^d \rightarrow \mathbb{R}$ is positive-definite iff there is a finite non-negative Borel
+		measure $\mu$ on $\mathbb{R}^d$ such that
+		$$
+		f(x) =  \int_{\mathbb{R}^d} \exp(i \omega ^T x) d \mu(\omega)
+		$$
+	\end{thm}
+
+	\begin{defi}
+		Kernel $k(x, y)$ is called \textit{shift-invariant} if $k(x, y)=g(x-y)$ for some positive definite function $g:\mathbb{R}^d \rightarrow \mathbb{R}$. 
+		We will write $k(x, y)=k(x-y)$ emphasizing that the function $g$ is related to the kernel $k(x,y)$.
+	\end{defi}
+
+	It follows from the Bochner's theorem that the kernel $k(x, y)$ is shift-invariant iff there exist a function $k(x-y)\equiv k(x, y)$ which is the Fourier transform of a non-negative Borel measure:
+	
+	
+
+	
+
+
+	
+	
+	\begin{lstlisting} 
+		
+	\end{lstlisting} 
+	
+		
+
+\end{document}
